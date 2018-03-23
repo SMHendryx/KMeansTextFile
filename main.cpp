@@ -214,7 +214,6 @@ std::pair <float, float> minMaxOfMatCol(Mat points, int col_index) {
 }
 
 Mat makeEmptyGridFromMinxMinyMaxxMaxy(float x_min, float y_min, float x_max, float y_max, float resolution) {
-    // TODO I am here
     // add one for column and row at right edge and bottom, respectively
     int n_rows = static_cast<int>((ceilToRes(y_max, resolution) - floorToRes(y_min, resolution))/resolution) + 1;
     //cout << "\nn_rows: " << n_rows << "\n";
