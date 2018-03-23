@@ -1,4 +1,7 @@
-
+/* Author: Sean Hendryx
+This code has useful functions for reading in text data and then gridding the data for plotting with OpenCV
+Adapted from: https://docs.opencv.org/3.1.0/de/d63/kmeans_8cpp-example.html
+*/
 #include <cv.h>
 #include <highgui.h>
 #include <opencv2/opencv.hpp>
@@ -100,29 +103,9 @@ int main( int /*argc*/, char** /*argv*/ )
         
         Mat labels;
 
-        //int i, sampleCount = rng.uniform(1, 1001);
-        // Make two opencv Mat objects, points and labels:
-        //Mat points(sampleCount, 1, CV_32FC2), labels;
-        //cout << "\n points from opencv: " << points;
         cout << "\n";
 
-
-
-        //clusterCount = MIN(clusterCount, sampleCount);
         Mat centers;
-        /* generate random sample from multigaussian distribution */
-        //for( k = 0; k < clusterCount; k++ )
-        //{
-            // Initialize points:
-            //Point center;
-            //center.x = rng.uniform(0, img.cols);
-            //center.y = rng.uniform(0, img.rows);
-            /*Mat pointChunk = points.rowRange(k*sampleCount/clusterCount,
-                                             k == clusterCount - 1 ? sampleCount :
-                                             (k+1)*sampleCount/clusterCount); */
-            //rng.fill(pointChunk, RNG::NORMAL, Scalar(center.x, center.y), Scalar(img.cols*0.05, img.rows*0.05));
-        //}
-        //randShuffle(points, 1, &rng);
 
         // Run kmeans:
         int numAttempts = 3; // Flag to specify the number of times the algorithm is executed using different initial labellings. The algorithm returns the labels that yield the best compactness (see the last function parameter).
