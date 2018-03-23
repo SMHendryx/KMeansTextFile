@@ -11,5 +11,8 @@ And run with:
 Running will prompt to input path to delimited file such as:  `kmeansFeatures.csv`.
 
 ## Dependencies
-[OpenCV] (https://opencv.org/)
+
+[OpenCV](https://opencv.org/)
+
 g++
+
