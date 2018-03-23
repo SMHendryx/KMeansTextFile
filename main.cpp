@@ -68,7 +68,7 @@ int main( int /*argc*/, char** /*argv*/ )
 
     // Read input from delimited text file:
     Mat points = readTextFileIntoMatrix(path, delimiter);
-    cout << "Input matrix: \n" << points;
+    //cout << "Input matrix: \n" << points;
 
     const int MAX_CLUSTERS = 5;
     Scalar colorTab[] =
@@ -79,7 +79,7 @@ int main( int /*argc*/, char** /*argv*/ )
         Scalar(255,0,255),
         Scalar(0,255,255)
     };
-    // TODO: I am here: Need to generate an image (opencv class Mat) of the right dimensions
+    // Generate an image (opencv class Mat) of the right dimensions
     // Scale x and y:
     std::pair<float, float> new_min_max;
     new_min_max = std::make_pair((float) 0, (float) 100);
@@ -89,15 +89,7 @@ int main( int /*argc*/, char** /*argv*/ )
     scaled_y.col(0).copyTo(points.col(1));
     // Get min and maxes:
     std::pair <float, float> x_min_max = minMaxOfMatCol(points, 0);
-    cout << "\nx_min_max.first: " << x_min_max.first;
     std::pair <float, float> y_min_max = minMaxOfMatCol(points, 1);
-    cout << "\ny_min_max.first: " << y_min_max.first;
-    cout << "\ny_min_max.second: " << y_min_max.second;
-    //float x_min = minOfMatCol(points, 0);
-    //float y_min = minOfMatCol(points, 1);
-    //float x_max = maxOfMatCol(points, 0);
-    //float y_max = maxOfMatCol(points, 1);
-
     // Used for computing the size of the output image:
     float resolution = .1;
 
@@ -150,11 +142,9 @@ int main( int /*argc*/, char** /*argv*/ )
         {
             int clusterIdx = labels.at<int>(i);
             Point ipt = points.at<Point2f>(i);
-            cout << "ipt: " << ipt << "\n";
             Point ij;
             ij.x = columnIndex(ipt.x, x_min_max.first, resolution);
             ij.y = rowIndex(ipt.y, y_min_max.second, resolution);
-            cout << "ij: " << ij << "\n";
             circle( img, ij, 2, colorTab[clusterIdx], FILLED, LINE_AA );
         }
         imwrite(std::to_string(k) + "_clusters.jpg", img);
@@ -193,30 +183,24 @@ Mat readTextFileIntoMatrix(string path, char delimiter) {
     std::getline(file, firstLine);
 
     int numRows = 0;
-    int numCells = 0;
+    //int numCells = 0;
     std::string line;
     while (std::getline(file, line)) {  
-        //cout << "\n std::getline \n";
         istringstream stream(line);
-        cout << line;
-        //char sep; //comma!
         std::string cellString;
-        //char* end;
         // read *both* a number and the delimiter:
         while(std::getline(stream, cellString, delimiter)) {
-            //cout << "\n stream \n";
-            //cout << "cellString: " << cellString;
 
             float cell = atof(cellString.c_str());
 
             matrix.push_back(cell);
 
-            numCells ++;
+            //numCells ++;
         }
         numRows ++;
     } 
-    cout << "\n numRows: " << numRows;
-    cout << "\n number of cells/elements: " << numCells; 
+    //cout << "\n numRows: " << numRows;
+    //cout << "\n number of cells/elements: " << numCells; 
     // reshape to 2d:
     matrix = matrix.reshape(1,numRows);
 
@@ -250,9 +234,9 @@ Mat makeEmptyGridFromMinxMinyMaxxMaxy(float x_min, float y_min, float x_max, flo
     // TODO I am here
     // add one for column and row at right edge and bottom, respectively
     int n_rows = static_cast<int>((ceilToRes(y_max, resolution) - floorToRes(y_min, resolution))/resolution) + 1;
-    cout << "\nn_rows: " << n_rows << "\n";
+    //cout << "\nn_rows: " << n_rows << "\n";
     int n_cols = static_cast<int>((ceilToRes(x_max, resolution) - floorToRes(x_min, resolution))/resolution) + 1;
-    cout << "\nn_cols: " << n_cols << "\n";
+    //cout << "\nn_cols: " << n_cols << "\n";
 
     Mat empty_image(n_rows, n_cols, CV_8UC3);
 
@@ -287,34 +271,3 @@ int columnIndex(float x, float x_min, float resolution) {
     return static_cast<int>((x - x_min) / resolution);
 }
 
-
-
-
-// here's another example: https://stackoverflow.com/questions/33250380/c-skip-first-line-of-csv-file
-/*
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <cstdlib>
-
-int readCSV() {     
-    std::ifstream data("prisoner_data.csv");
-    if (!data.is_open())
-    {
-        std::exit(EXIT_FAILURE);
-    }
-    std::string str;
-    std::getline(data, str); // skip the first line
-    while (std::getline(data, str))
-    {
-        std::istringstream iss(str);
-        std::string token;
-        while (std::getline(iss, token, ','))
-        {   
-            // process each token
-            std::cout << token << " ";
-        }
-        std::cout << std::endl;
-    }
-}*/
