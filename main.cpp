@@ -39,6 +39,11 @@ std::pair <float, float> minMaxOfMatCol(Mat points, int col_index);
 //float minOfMatCol(Mat points, int colIndex);
 //float maxOfMatCol(Mat points, int colIndex);
 Mat makeEmptyGridFromMinxMinyMaxxMaxy(float x_min, float y_min, float x_max, float y_max, float resolution);
+float ceilToRes(float x, float resolution);
+float floorToRes(float x, float resolution);
+int columnIndex(float x, float x_min, float resolution);
+int rowIndex(float y, float y_max, float resolution);
+Mat minMaxScaler(Mat X, std::pair<float, float> new_min_max);
 
 
 int main( int /*argc*/, char** /*argv*/ )
@@ -55,6 +60,12 @@ int main( int /*argc*/, char** /*argv*/ )
     cin >> delimiter;
     cout << "File will be seperated by: " << delimiter << "\n";
 
+    int k;
+    cout << "Enter number of clusters (max of 5): ";
+    cin >> k;
+
+    cout << "Number of clusters: = " << k << "\n";
+
     // Read input from delimited text file:
     Mat points = readTextFileIntoMatrix(path, delimiter);
     cout << "Input matrix: \n" << points;
@@ -69,26 +80,32 @@ int main( int /*argc*/, char** /*argv*/ )
         Scalar(0,255,255)
     };
     // TODO: I am here: Need to generate an image (opencv class Mat) of the right dimensions
+    // Scale x and y:
+    std::pair<float, float> new_min_max;
+    new_min_max = std::make_pair((float) 0, (float) 100);
+    Mat scaled_x = minMaxScaler(points.col(0), new_min_max);
+    scaled_x.col(0).copyTo(points.col(0));
+    Mat scaled_y = minMaxScaler(points.col(1), new_min_max);
+    scaled_y.col(0).copyTo(points.col(1));
     // Get min and maxes:
     std::pair <float, float> x_min_max = minMaxOfMatCol(points, 0);
+    cout << "\nx_min_max.first: " << x_min_max.first;
     std::pair <float, float> y_min_max = minMaxOfMatCol(points, 1);
+    cout << "\ny_min_max.first: " << y_min_max.first;
+    cout << "\ny_min_max.second: " << y_min_max.second;
     //float x_min = minOfMatCol(points, 0);
     //float y_min = minOfMatCol(points, 1);
     //float x_max = maxOfMatCol(points, 0);
     //float y_max = maxOfMatCol(points, 1);
 
-    float resolution = 0.01;
+    // Used for computing the size of the output image:
+    float resolution = .1;
 
-    Mat img = makeEmptyGridFromMinxMinyMaxxMaxy(x_min_max.first, y_min_max.second, x_min_max.second, y_min_max.second, resolution);
+    Mat img = makeEmptyGridFromMinxMinyMaxxMaxy(x_min_max.first, y_min_max.first, x_min_max.second, y_min_max.second, resolution);
     //Mat img(500, 500, CV_8UC3);
     RNG rng(12345);
-    for(;;)
-    {
-        int k = 2; // Number of apriori estimated clusters.
-        //clusterCount = 2;//, clusterCount = 2; //rng.uniform(2, MAX_CLUSTERS+1);
-        //cout << "\nk = " << k << "\n";
-        cout << "Number of clusters: = " << k << "\n";
-
+    for(;;) {
+        
         Mat labels;
 
         //int i, sampleCount = rng.uniform(1, 1001);
@@ -133,8 +150,14 @@ int main( int /*argc*/, char** /*argv*/ )
         {
             int clusterIdx = labels.at<int>(i);
             Point ipt = points.at<Point2f>(i);
-            circle( img, ipt, 2, colorTab[clusterIdx], FILLED, LINE_AA );
+            cout << "ipt: " << ipt << "\n";
+            Point ij;
+            ij.x = columnIndex(ipt.x, x_min_max.first, resolution);
+            ij.y = rowIndex(ipt.y, y_min_max.second, resolution);
+            cout << "ij: " << ij << "\n";
+            circle( img, ij, 2, colorTab[clusterIdx], FILLED, LINE_AA );
         }
+        imwrite(std::to_string(k) + "_clusters.jpg", img);
         imshow("clusters", img);
         char key = (char)waitKey();
         if( key == 27 || key == 'q' || key == 'Q' ) // 'ESC'
@@ -211,7 +234,7 @@ inline bool checkIfFileExists(const std::string& filename) {
 
 std::pair <float, float> minMaxOfMatCol(Mat points, int col_index) {
     // Returns the min and max values of a column of an opencv Mat 
-    std::pair <float, float> min_max;
+    std::pair<float, float> min_max;
 
     double min_val;
     double max_val;
@@ -224,13 +247,16 @@ std::pair <float, float> minMaxOfMatCol(Mat points, int col_index) {
 }
 
 Mat makeEmptyGridFromMinxMinyMaxxMaxy(float x_min, float y_min, float x_max, float y_max, float resolution) {
-    
+    // TODO I am here
     // add one for column and row at right edge and bottom, respectively
-    n_rows = static_cast<int>((ceilToRes(y_max, resolution) - floorToRes(y_min, resolution))/resolution) + 1;
+    int n_rows = static_cast<int>((ceilToRes(y_max, resolution) - floorToRes(y_min, resolution))/resolution) + 1;
+    cout << "\nn_rows: " << n_rows << "\n";
+    int n_cols = static_cast<int>((ceilToRes(x_max, resolution) - floorToRes(x_min, resolution))/resolution) + 1;
+    cout << "\nn_cols: " << n_cols << "\n";
 
-    n_cols = static_cast<int>((ceilToRes(x_max, resolution) - floorToRes(x_min, resolution))/resolution) + 1;
+    Mat empty_image(n_rows, n_cols, CV_8UC3);
 
-    return Mat img(n_rows, n_cols, CV_8UC3);
+    return empty_image;
 }
 
 float ceilToRes(float x, float resolution) {
@@ -240,6 +266,15 @@ float ceilToRes(float x, float resolution) {
 float floorToRes(float x, float resolution) {
     // floors x to resolution
     return floor(x / resolution) * resolution;
+}
+
+Mat minMaxScaler(Mat X, std::pair<float, float> new_min_max) {
+    // Scales the first column of X and returns new scaled vector 
+    // X should be one column of floats.
+    std:: pair<float,float> old_min_max = minMaxOfMatCol(X, 0);
+    float old_range = old_min_max.second - old_min_max.first;
+    float new_range = new_min_max.second - new_min_max.first;
+    return (((X - old_min_max.first) * new_range) / old_range) + new_min_max.first;
 }
 
 int rowIndex(float y, float y_max, float resolution) {
